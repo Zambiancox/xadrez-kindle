@@ -1,0 +1,60 @@
+# Publica o jogo no GitHub Pages.
+#
+# So roda na main (e sob demanda), nunca em pull request: o resultado aqui
+# depende de o Pages estar ligado na conta, e isso nao e um defeito do
+# codigo que um pull request deva sinalizar. Os testes ficam em testes.yml.
+#
+# O site tem um arquivo so: dist/xadrez-kindle.html vira o index.html, entao
+# o endereco fica curto (digitar URL no teclado do Kindle e sofrido) e a
+# pagina inteira chega em uma unica requisicao.
+name: Publicar no GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# uma publicacao por vez; nao cancela a que ja esta rodando
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Testar o motor antes de publicar
+        run: node testes/motor.js
+
+      - name: Gerar o arquivo unico
+        run: python3 build.py
+
+      - name: Montar o site
+        run: |
+          mkdir -p _site
+          cp dist/xadrez-kindle.html _site/index.html
+          cp dist/xadrez-kindle.html _site/xadrez-kindle.html
+          touch _site/.nojekyll
+
+      # enablement liga o Pages sozinho, poupando a visita as configuracoes.
+      # Em repositorio privado sem conta Pro isso falha aqui, e a mensagem de
+      # erro diz exatamente isso.
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4

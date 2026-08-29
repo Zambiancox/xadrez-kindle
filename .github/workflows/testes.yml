@@ -1,0 +1,49 @@
+# Testes que rodam em todo push e em todo pull request.
+# Publicar e outra coisa e mora em pages.yml: um pull request nao pode ficar
+# vermelho porque o GitHub Pages ainda nao foi ligado.
+name: Testes
+
+# push so na main: nas outras branches quem dispara e o pull_request, senao
+# cada push abriria duas execucoes identicas
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# um push novo cancela a execucao anterior da mesma branch
+concurrency:
+  group: testes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  testar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Motor (perft, taticas, partida da IA)
+        run: node testes/motor.js
+
+      - name: Gerar o arquivo unico
+        run: python3 build.py
+
+      - name: Conferir que dist/ esta em dia com js/ e css/
+        run: |
+          if ! git diff --quiet -- dist/; then
+            echo "::error::dist/xadrez-kindle.html esta desatualizado."
+            echo "Rode 'python3 build.py' e inclua o resultado no commit."
+            git diff --stat -- dist/
+            exit 1
+          fi
+
+      - name: Instalar o navegador de teste
+        run: |
+          npm install --no-audit --no-fund --no-save playwright@1.62.1
+          npx playwright install --with-deps chromium
+
+      - name: Interface (regras pela tela e tamanhos de tela do Kindle)
+        run: node testes/navegador.js dist

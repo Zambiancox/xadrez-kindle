@@ -1,0 +1,133 @@
+/* =========================================================================
+   style.css - visual pensado para telas de tinta eletronica
+   Regras da casa:
+   - nada de animacao, transicao, sombra ou gradiente (borram no e-ink e
+     custam caro no processador do Kindle);
+   - so preto, branco e alguns cinzas: a tela tem 16 tons;
+   - nada de flexbox/grid nem unidades vw/vh: o WebKit do Kindle e de 2012.
+     As medidas que dependem da tela sao calculadas em JavaScript.
+   ========================================================================= */
+
+* { -webkit-tap-highlight-color: rgba(0,0,0,0); }
+
+html, body {
+  margin: 0; padding: 0;
+  background: #ffffff; color: #000000;
+  font-family: Georgia, "Times New Roman", serif;
+  -webkit-text-size-adjust: none;
+  -webkit-user-select: none; user-select: none;
+}
+
+#app { margin: 0 auto; position: relative; }
+
+/* ------------------------------------------------------------- cabecalho */
+#topo {
+  border-bottom: 2px solid #000;
+  padding: 4px 6px 6px 6px;
+  overflow: hidden;
+}
+#status { font-size: 19px; font-weight: bold; line-height: 22px; }
+#detalhe { font-size: 13px; color: #555; line-height: 16px; height: 16px; }
+
+/* -------------------------------------------------------------- tabuleiro */
+#quadro { border: 3px solid #000; background: #fff; }
+#tab { border-collapse: collapse; border-spacing: 0; }
+#tab td {
+  padding: 0; margin: 0; text-align: center; vertical-align: middle;
+  position: relative; overflow: hidden;
+}
+.clara  { background: #ffffff; }
+.escura { background: #a9a9a9; }
+
+/* casa marcada como destino possivel */
+.ponto  { }
+.marca {
+  position: absolute; left: 50%; top: 50%;
+  background: #000; border-radius: 50%; -webkit-border-radius: 50%;
+}
+/* anel para destino com captura */
+.anel {
+  position: absolute; left: 0; top: 0;
+  border: 4px solid #000; border-radius: 50%; -webkit-border-radius: 50%;
+}
+/* casa de origem selecionada */
+.sel { outline: none; }
+.selBorda { position: absolute; left: 0; top: 0; border: 4px solid #000; }
+/* origem e destino do ultimo lance */
+.ultimo { position: absolute; left: 0; top: 0; border: 2px dashed #000; }
+/* rei em xeque */
+.xeque { position: absolute; left: 0; top: 0; border: 4px double #000; }
+
+/* --------------------------------------------------------------- pecas */
+.peca {
+  position: relative; display: block; width: 100%; height: 100%;
+  line-height: 1; text-align: center; font-weight: bold;
+}
+/* modo simbolos: usa os glifos unicode de xadrez */
+.sim { font-family: "DejaVu Sans", "Arial Unicode MS", sans-serif; }
+/* modo letras: circulo com a inicial da peca (funciona em qualquer fonte) */
+.let {
+  border-radius: 50%; -webkit-border-radius: 50%;
+  font-family: Helvetica, Arial, sans-serif;
+}
+.letB { background: #fff; color: #000; border: 2px solid #000; }
+.letP { background: #000; color: #fff; border: 2px solid #000; }
+
+/* ----------------------------------------------------------- coordenadas */
+.coord {
+  position: absolute; font-size: 9px; font-family: Helvetica, Arial, sans-serif;
+  color: #000; line-height: 9px;
+}
+.coordF { left: 2px; bottom: 1px; }
+.coordR { right: 2px; top: 1px; }
+
+/* --------------------------------------------------------------- botoes */
+#barra { padding: 6px 4px 4px 4px; overflow: hidden; }
+.btn {
+  display: block; float: left;
+  -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box;
+  border: 2px solid #000; background: #fff; color: #000;
+  font-family: Helvetica, Arial, sans-serif; font-size: 15px; font-weight: bold;
+  text-align: center; text-decoration: none;
+  margin: 0 4px 4px 0; padding: 0;
+  cursor: pointer;
+}
+.btn.apagado { color: #999; border-color: #999; }
+.btnLargo { font-size: 16px; }
+
+/* ------------------------------------------------------------- historico */
+#info { padding: 2px 6px; overflow: hidden; }
+#capturas { font-size: 15px; line-height: 18px; height: 18px; overflow: hidden;
+            font-family: "DejaVu Sans", Helvetica, Arial, sans-serif; }
+#lances {
+  font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 15px;
+  overflow: hidden; border-top: 1px solid #999; padding-top: 3px; margin-top: 2px;
+}
+#lances b { font-weight: normal; color: #666; }
+
+/* ---------------------------------------------------------------- modal */
+#veu {
+  display: none; position: absolute; left: 0; top: 0;
+  width: 100%; height: 100%; background: #fff; z-index: 10;
+}
+#modal {
+  display: none; position: absolute; z-index: 11;
+  background: #fff; border: 3px solid #000; padding: 10px;
+}
+#modal h2 { margin: 0 0 8px 0; font-size: 20px; }
+#modal .linha { margin-bottom: 10px; overflow: hidden; }
+#modal .rot {
+  font-family: Helvetica, Arial, sans-serif; font-size: 13px;
+  font-weight: bold; margin-bottom: 4px; text-transform: uppercase;
+}
+.opt {
+  display: block; float: left;
+  -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; border: 2px solid #000; background: #fff;
+  font-family: Helvetica, Arial, sans-serif; font-size: 14px;
+  padding: 7px 9px; margin: 0 5px 5px 0; cursor: pointer;
+}
+.opt.on { background: #000; color: #fff; }
+#fenCaixa {
+  width: 100%; font-family: monospace; font-size: 11px; border: 1px solid #000;
+  padding: 3px; -webkit-user-select: text; user-select: text;
+}
