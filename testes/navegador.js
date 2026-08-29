@@ -102,6 +102,27 @@ function conferir(ok, msg) {
   await tocar('d2'); await tocar('d4');
   await pagina.reload(); await pagina.waitForTimeout(600);
   conferir((await lances()).indexOf('d4') >= 0, 'partida continua depois de recarregar');
+
+  /* As pecas nao podem esticar o tabuleiro: ja aconteceu de a margem do
+     circulo do modo "letras" escapar da casa (margin collapsing), crescer
+     cada linha da tabela e o tabuleiro acabar por cima dos botoes. */
+  for (var k = 0; k < 2; k++) {
+    var modo = ['eSvg', 'eLet'][k];
+    await pagina.locator('#bMenu').click(); await pagina.waitForTimeout(150);
+    await pagina.locator('#' + modo).click(); await pagina.waitForTimeout(200);
+    await pagina.locator('#fechar').click(); await pagina.waitForTimeout(250);
+    var caixa = await pagina.evaluate(function () {
+      var q = document.getElementById('quadro'), t = document.getElementById('tab');
+      return {
+        quadro: q.offsetHeight, tabela: t.offsetHeight,
+        fimTabuleiro: t.getBoundingClientRect().bottom,
+        inicioBotoes: document.getElementById('barra').getBoundingClientRect().top
+      };
+    });
+    conferir(caixa.tabela <= caixa.quadro && caixa.fimTabuleiro <= caixa.inicioBotoes,
+      'modo ' + (modo === 'eSvg' ? 'desenho' : 'letras') + ': tabuleiro de ' +
+      caixa.tabela + 'px cabe no quadro e nao invade os botoes');
+  }
   await ctx.close();
 
   console.log('\ncabe na tela sem rolagem:');
