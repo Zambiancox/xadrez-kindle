@@ -37,9 +37,13 @@ function conferir(ok, msg) {
 
 (async function () {
   console.log('testando ' + path.relative(raiz, alvo) + '\n');
-  var navegador = await chromium.launch({
-    executablePath: process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium'
-  });
+  /* usa um Chromium ja presente na maquina quando existir (o ambiente de
+     desenvolvimento traz um em /opt/pw-browsers); senao deixa o proprio
+     playwright escolher o que ele instalou, que e o caso no CI */
+  var fs = require('fs');
+  var executavel = process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium';
+  var opcoes = fs.existsSync(executavel) ? { executablePath: executavel } : {};
+  var navegador = await chromium.launch(opcoes);
   var ctx = await navegador.newContext({ viewport: { width: 600, height: 800 }, hasTouch: true });
   var pagina = await ctx.newPage();
   var erros = [];

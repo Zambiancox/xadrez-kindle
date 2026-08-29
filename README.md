@@ -50,14 +50,15 @@ No Kindle, abra `http://IP-DO-COMPUTADOR:8000/xadrez-kindle.html`
 
 **3. Publicando na web (GitHub Pages)**
 
-O repositório já traz o workflow `.github/workflows/pages.yml`, que gera o
-arquivo único e o publica como `index.html` do site a cada push. Para ligar,
-uma vez só:
+O repositório traz o workflow `.github/workflows/pages.yml`, que gera o
+arquivo único e o publica como `index.html` do site a cada push na `main`.
+Para ligar, uma vez só:
 
 1. O repositório precisa ser **público** (Pages em repositório privado exige
    conta GitHub Pro): *Settings ▸ General ▸ Danger Zone ▸ Change visibility*.
-2. *Settings ▸ Pages ▸ Source*: **GitHub Actions**.
-3. *Actions ▸ Publicar no GitHub Pages ▸ Run workflow* (ou faça qualquer push).
+2. *Actions ▸ Publicar no GitHub Pages ▸ Run workflow* (ou faça um push na
+   `main`). O workflow liga o Pages sozinho na primeira execução — não
+   precisa mexer em *Settings ▸ Pages*.
 
 O endereço fica `https://SEU-USUARIO.github.io/xadrez-kindle/` — sem nome de
 arquivo no fim, porque o jogo é o `index.html` do site. No Kindle, digite uma
@@ -138,7 +139,9 @@ node testes/navegador.js dist    # testa o arquivo final
 ```
 
 **Sempre rode `python3 build.py` depois de mexer em `js/` ou `css/`** — o
-arquivo em `dist/` é uma cópia embutida, não é gerado na hora.
+arquivo em `dist/` é uma cópia embutida, não é gerado na hora. O workflow
+`.github/workflows/testes.yml` roda os dois testes a cada push e recusa o
+commit em que `dist/` ficou para trás do código.
 
 ## Sobre o adversário
 
