@@ -56,9 +56,14 @@ Para ligar, uma vez só:
 
 1. O repositório precisa ser **público** (Pages em repositório privado exige
    conta GitHub Pro): *Settings ▸ General ▸ Danger Zone ▸ Change visibility*.
-2. *Actions ▸ Publicar no GitHub Pages ▸ Run workflow* (ou faça um push na
-   `main`). O workflow liga o Pages sozinho na primeira execução — não
-   precisa mexer em *Settings ▸ Pages*.
+2. *Actions ▸ Publicar no GitHub Pages ▸ Run workflow*, com a branch
+   **main** selecionada (ou simplesmente faça um push na `main`). O
+   workflow liga o Pages sozinho na primeira execução — não precisa mexer
+   em *Settings ▸ Pages*.
+
+O deploy só sai da `main`: o ambiente `github-pages` do GitHub recusa
+publicações vindas de outras branches, e a execução falha em um segundo,
+sem log. Então uma alteração só vai ao ar depois do merge.
 
 O endereço fica `https://SEU-USUARIO.github.io/xadrez-kindle/` — sem nome de
 arquivo no fim, porque o jogo é o `index.html` do site. No Kindle, digite uma
