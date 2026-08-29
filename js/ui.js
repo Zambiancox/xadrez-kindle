@@ -37,37 +37,12 @@
   var pintado = [];             /* assinatura do que ja esta na tela */
   var htmlPeca = {};            /* html pronto de cada peca       */
   var htmlMarca = {};
-  var usaSimbolos = false;
+  var usaDesenho = true;   /* true = pecas desenhadas em SVG, false = letras */
 
-  var SIMBOLO = { 1: '♙', 2: '♘', 3: '♗', 4: '♖', 5: '♕', 6: '♔',
-                  9: '♟', 10: '♞', 11: '♝', 12: '♜', 13: '♛', 14: '♚' };
   var LETRA = { 1: 'P', 2: 'C', 3: 'B', 4: 'T', 5: 'D', 6: 'R' };
   var NOME_NIVEL = { 1: 'Facil', 2: 'Medio', 3: 'Dificil', 4: 'Mestre' };
 
   function $(id) { return document.getElementById(id); }
-
-  /* ----------------------------------------------------- deteccao de fonte
-     Muitos Kindles nao trazem os simbolos de xadrez na fonte do sistema.
-     Mede-se a largura de um glifo de xadrez contra a de um caractere que
-     com certeza nao existe: se derem igual, os dois viraram "caixinha". */
-  function temSimbolosDeXadrez() {
-    var d = document.createElement('div');
-    d.style.position = 'absolute';
-    d.style.left = '-9999px';
-    d.style.top = '0';
-    d.style.fontSize = '80px';
-    d.style.fontFamily = '"DejaVu Sans", "Arial Unicode MS", sans-serif';
-    d.style.whiteSpace = 'nowrap';
-    document.body.appendChild(d);
-    d.innerHTML = '♚';
-    var a = d.offsetWidth;
-    d.innerHTML = '￾';
-    var b = d.offsetWidth;
-    d.innerHTML = '♔';
-    var c = d.offsetWidth;
-    document.body.removeChild(d);
-    return a > 0 && a !== b && c !== b;
-  }
 
   /* --------------------------------------------------------------- layout */
 
@@ -158,21 +133,35 @@
     var chaves = [1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14];
     for (i = 0; i < chaves.length; i++) {
       var p = chaves[i], cor = E.corDe(p), tipo = E.tipoDe(p);
-      if (usaSimbolos) {
-        htmlPeca[p] = '<span class="peca sim" style="font-size:' + dim.fontePeca +
-          'px;line-height:' + cel + 'px">' + SIMBOLO[p] + '</span>';
+      if (usaDesenho) {
+        htmlPeca[p] = Pecas.svg(tipo, cor, cel);
       } else {
-        var d = cel - 8;
+        /* posicionado, nao empurrado por margem: margem de filho em bloco
+           escapa da casa (margin collapsing) e estica a linha da tabela,
+           o que fazia o tabuleiro crescer e cobrir os botoes */
+        /* 6px de folga de cada lado: e o espaco que o anel de captura ocupa,
+           senao ele fica escondido debaixo da peca */
+        var d = cel - 16;
         htmlPeca[p] = '<span class="peca let ' + (cor === E.BRANCA ? 'letB' : 'letP') +
-          '" style="width:' + (d - 4) + 'px;height:' + (d - 4) + 'px;margin:4px auto;font-size:' +
-          dim.fonteLetra + 'px;line-height:' + (d - 4) + 'px">' + LETRA[tipo] + '</span>';
+          '" style="position:absolute;left:6px;top:6px;width:' + d + 'px;height:' + d +
+          'px;font-size:' + dim.fonteLetra + 'px;line-height:' + d + 'px">' +
+          LETRA[tipo] + '</span>';
       }
     }
     var pt = dim.ponto;
     htmlMarca.ponto = '<div class="marca" style="width:' + pt + 'px;height:' + pt +
       'px;margin-left:' + (-pt / 2) + 'px;margin-top:' + (-pt / 2) + 'px"></div>';
-    htmlMarca.anel = '<div class="anel" style="width:' + (cel - 10) + 'px;height:' +
-      (cel - 10) + 'px"></div>';
+    /* captura: cantos, nao um anel. O anel sumia por baixo das pecas
+       escuras, e os cantos aparecem em qualquer casa e com qualquer peca. */
+    var c = Math.max(9, Math.floor(cel * 0.26)), e = 3;
+    var cantos = '';
+    for (var q = 0; q < 4; q++) {
+      var v = (q < 2) ? 'top:0' : 'bottom:0';
+      var h = (q % 2 === 0) ? 'left:0' : 'right:0';
+      cantos += '<div class="canto" style="' + v + ';' + h + ';width:' + c + 'px;height:' + e + 'px"></div>';
+      cantos += '<div class="canto" style="' + v + ';' + h + ';width:' + e + 'px;height:' + c + 'px"></div>';
+    }
+    htmlMarca.anel = cantos;
     htmlMarca.sel = '<div class="selBorda" style="width:' + (cel - 8) + 'px;height:' +
       (cel - 8) + 'px"></div>';
     htmlMarca.ultimo = '<div class="ultimo" style="width:' + (cel - 4) + 'px;height:' +
@@ -234,7 +223,7 @@
         (sq === reiEmXeque ? 16 : 0) |
         ((est.usaCursor && sq === est.cursor) ? 32 : 0);
 
-      var assinatura = p + '|' + flags + '|' + (cfg.coords ? 1 : 0) + '|' + dim.cel + '|' + (usaSimbolos ? 1 : 0);
+      var assinatura = p + '|' + flags + '|' + (cfg.coords ? 1 : 0) + '|' + dim.cel + '|' + (usaDesenho ? 1 : 0);
       if (!forcar && pintado[v] === assinatura) continue;
       pintado[v] = assinatura;
 
@@ -299,14 +288,23 @@
       var t = ordem[i];
       var nB = inicio[t] - (cont[t] || 0);
       var nP = inicio[t + 8] - (cont[t + 8] || 0);
-      while (nB-- > 0) { faltaB += usaSimbolos ? SIMBOLO[t] : LETRA[t]; saldo -= IA.VALOR[t]; }
-      while (nP-- > 0) { faltaP += usaSimbolos ? SIMBOLO[t + 8] : LETRA[t]; saldo += IA.VALOR[t]; }
+      var alt = Math.max(14, Math.min(22, Math.floor(dim.cel * 0.28)));
+      while (nB-- > 0) {
+        faltaB += usaDesenho ? Pecas.svg(t, E.BRANCA, alt) : LETRA[t];
+        saldo -= IA.VALOR[t];
+      }
+      while (nP-- > 0) {
+        faltaP += usaDesenho ? Pecas.svg(t, E.PRETA, alt) : LETRA[t];
+        saldo += IA.VALOR[t];
+      }
     }
     var texto = '';
-    if (faltaP) texto += 'Brancas comeram: ' + faltaP + '  ';
+    if (faltaP) texto += 'Brancas comeram: ' + faltaP + '&nbsp;&nbsp; ';
     if (faltaB) texto += 'Pretas comeram: ' + faltaB;
     if (saldo !== 0) {
-      texto += '  (' + (saldo > 0 ? '+' : '') + Math.round(saldo / 100 * 10) / 10 + ')';
+      /* quem esta na frente, e por quanto - mais util que um numero com sinal */
+      var vant = (Math.round(Math.abs(saldo) / 10) / 10).toString().replace('.', ',');
+      texto += '&nbsp;&nbsp; <b>' + (saldo > 0 ? 'Brancas' : 'Pretas') + ' +' + vant + '</b>';
     }
     $('capturas').innerHTML = texto || '&nbsp;';
 
@@ -505,7 +503,7 @@
       opcao('cB', 'Brancas', cfg.humano === E.BRANCA) +
       opcao('cP', 'Pretas', cfg.humano === E.PRETA) + '</div>';
     h += '<div class="linha"><div class="rot">Desenho das pecas</div>' +
-      opcao('eSim', 'Simbolos', usaSimbolos) + opcao('eLet', 'Letras', !usaSimbolos) + '</div>';
+      opcao('eSvg', 'Desenho', usaDesenho) + opcao('eLet', 'Letras', !usaDesenho) + '</div>';
     h += '<div class="linha"><div class="rot">Ajudas</div>' +
       opcao('aDicas', 'Marcar lances', cfg.dicas) +
       opcao('aCoord', 'Coordenadas', cfg.coords) + '</div>';
@@ -527,8 +525,8 @@
       n4: function () { cfg.nivel = 4; reabrir(); },
       cB: function () { cfg.humano = E.BRANCA; est.girado = false; reabrir(); verificarVez(); },
       cP: function () { cfg.humano = E.PRETA; est.girado = true; reabrir(); verificarVez(); },
-      eSim: function () { usaSimbolos = true; cfg.estilo = 'sim'; prepararHtml(); reabrir(); },
-      eLet: function () { usaSimbolos = false; cfg.estilo = 'let'; prepararHtml(); reabrir(); },
+      eSvg: function () { usaDesenho = true; cfg.estilo = 'svg'; prepararHtml(); reabrir(); },
+      eLet: function () { usaDesenho = false; cfg.estilo = 'let'; prepararHtml(); reabrir(); },
       aDicas: function () { cfg.dicas = !cfg.dicas; reabrir(); },
       aCoord: function () { cfg.coords = !cfg.coords; reabrir(); },
       aLimpar: function () { fecharModal(); limparFantasmas(); },
@@ -670,7 +668,7 @@
   function salvarConfig() {
     try {
       localStorage.setItem(CHAVE + '.cfg', cfg.modo + ',' + cfg.nivel + ',' + cfg.humano + ',' +
-        (usaSimbolos ? 1 : 0) + ',' + (cfg.dicas ? 1 : 0) + ',' + (cfg.coords ? 1 : 0));
+        (usaDesenho ? 1 : 0) + ',' + (cfg.dicas ? 1 : 0) + ',' + (cfg.coords ? 1 : 0));
     } catch (e) {}
   }
 
@@ -695,7 +693,7 @@
       cfg.modo = pc[0] === 'dois' ? 'dois' : 'cpu';
       cfg.nivel = parseInt(pc[1], 10) || 2;
       cfg.humano = parseInt(pc[2], 10) === 1 ? E.PRETA : E.BRANCA;
-      if (pc[3] !== undefined) { usaSimbolos = pc[3] === '1'; cfg.estilo = usaSimbolos ? 'sim' : 'let'; }
+      if (pc[3] !== undefined) { usaDesenho = pc[3] === '1'; cfg.estilo = usaDesenho ? 'svg' : 'let'; }
       if (pc[4] !== undefined) cfg.dicas = pc[4] === '1';
       if (pc[5] !== undefined) cfg.coords = pc[5] === '1';
       est.girado = (cfg.modo === 'cpu' && cfg.humano === E.PRETA);
@@ -727,10 +725,12 @@
   /* -------------------------------------------------------------- inicio */
 
   function iniciar() {
-    usaSimbolos = temSimbolosDeXadrez();
+    var desenha = Pecas.suportaSvg();
+    usaDesenho = desenha;
     restaurar();
-    if (cfg.estilo === 'sim') usaSimbolos = true;
-    if (cfg.estilo === 'let') usaSimbolos = false;
+    if (cfg.estilo === 'svg') usaDesenho = true;
+    if (cfg.estilo === 'let') usaDesenho = false;
+    if (!desenha) usaDesenho = false;   /* aparelho sem SVG: letras */
 
     calcularLayout();
     aplicarLayout();

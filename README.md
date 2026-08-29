@@ -5,6 +5,12 @@ Sem internet, sem instalação, sem dependências: um arquivo HTML de 65 KB.
 
 ![tabuleiro](docs/tela.png)
 
+As peças são desenhadas em SVG, não são caracteres de fonte — saem idênticas
+em qualquer Kindle, com traço grosso e preenchimento chapado, que é o que a
+tinta eletrônica mostra bem:
+
+![peças](docs/pecas.png)
+
 ## Por que não dá para usar um xadrez qualquer da web
 
 O navegador do Kindle é um WebKit de 2012 rodando num processador lento,
@@ -19,7 +25,7 @@ segundo para redesenhar. Isso derruba praticamente todo jogo moderno:
 | Só tons de cinza | Preto, branco e um cinza médio; nada de cor |
 | Processador fraco | A IA busca por **tempo**, não por profundidade fixa |
 | Aviso de "script travado" | A busca é fatiada e devolve o controle ao navegador |
-| Fonte sem símbolos de xadrez | Detecta na hora e cai para peças em letras |
+| Fonte sem símbolos de xadrez | As peças são desenhadas em SVG, sem depender de fonte |
 | Toque impreciso | Casas grandes e botões de 40 px de altura |
 
 ## Como colocar no Kindle
@@ -77,7 +83,8 @@ cabo USB ou o servidor na rede local.
 ## Como jogar
 
 - **Mover**: toque na peça e depois na casa de destino. Os destinos possíveis
-  aparecem marcados com um ponto (captura vira um anel).
+  aparecem marcados com um ponto; quando o lance captura uma peça, a casa
+  ganha marcas nos quatro cantos.
 - **Desistir da seleção**: toque em qualquer casa vazia.
 - **Promoção**: ao chegar na última fileira, aparece um menu com Dama, Torre,
   Bispo e Cavalo.
@@ -98,10 +105,10 @@ fechar, é só reabrir que ela continua de onde parou.
   (0,4 s a 9 s por lance), o mesmo nível se comporta igual num Kindle velho
   e num aparelho rápido — ele só enxerga menos fundo no aparelho lento.
 - **Você joga de**: brancas ou pretas (o tabuleiro gira sozinho).
-- **Desenho das peças**: símbolos (♞) ou letras (R D T B C P, em círculos
-  pretos e brancos). O jogo detecta se a fonte do aparelho tem os símbolos
-  de xadrez e escolhe sozinho — as letras são bem mais legíveis em telas
-  pequenas de e-ink.
+- **Desenho das peças**: desenho ou letras (R D T B C P, em círculos pretos
+  e brancos). O desenho é o padrão e sai igual em qualquer aparelho; as
+  letras existem para quem prefere a leitura mais direta em telas pequenas,
+  e entram sozinhas se o navegador não desenhar SVG.
 - **Ajudas**: marcar os lances possíveis e mostrar as coordenadas.
 - **Limpar fantasmas**: pisca a tela em preto para apagar o resíduo das
   peças antigas, o truque de sempre no e-ink.
@@ -125,6 +132,7 @@ os erros clássicos de roque e *en passant*.
 index.html          versão de desenvolvimento (arquivos separados)
 css/style.css       visual pensado para e-ink
 js/engine.js        motor: tabuleiro 0x88, regras, FEN, notação
+js/pecas.js         o desenho das peças em SVG
 js/ai.js            adversário: negamax, alfa-beta, quiescência
 js/ui.js            interface: layout calculado, toque, teclado
 build.py            junta tudo em dist/xadrez-kindle.html
