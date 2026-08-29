@@ -48,11 +48,25 @@ cd dist && python3 -m http.server 8000
 No Kindle, abra `http://IP-DO-COMPUTADOR:8000/xadrez-kindle.html`
 (o IP aparece com `ip addr` no Linux, `ipconfig` no Windows).
 
-**3. Publicando na web**
+**3. Publicando na web (GitHub Pages)**
 
-Suba `dist/xadrez-kindle.html` em qualquer hospedagem estática (GitHub Pages,
-por exemplo) e abra o endereço no Kindle. Depois de carregar uma vez, o jogo
-funciona mesmo se o Wi-Fi cair — nada é buscado na rede durante a partida.
+O repositório já traz o workflow `.github/workflows/pages.yml`, que gera o
+arquivo único e o publica como `index.html` do site a cada push. Para ligar,
+uma vez só:
+
+1. O repositório precisa ser **público** (Pages em repositório privado exige
+   conta GitHub Pro): *Settings ▸ General ▸ Danger Zone ▸ Change visibility*.
+2. *Settings ▸ Pages ▸ Source*: **GitHub Actions**.
+3. *Actions ▸ Publicar no GitHub Pages ▸ Run workflow* (ou faça qualquer push).
+
+O endereço fica `https://SEU-USUARIO.github.io/xadrez-kindle/` — sem nome de
+arquivo no fim, porque o jogo é o `index.html` do site. No Kindle, digite uma
+vez e salve nos favoritos.
+
+O site é uma requisição só: 65 KB e nada mais é buscado na rede durante a
+partida. Kindles muito antigos (Kindle 3/4/Touch) podem recusar o HTTPS
+moderno que o `github.io` obriga; se aparecer erro de conexão segura, use o
+cabo USB ou o servidor na rede local.
 
 ## Como jogar
 

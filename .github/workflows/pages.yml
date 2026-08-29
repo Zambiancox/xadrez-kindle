@@ -1,0 +1,54 @@
+# Publica o jogo no GitHub Pages a cada push.
+#
+# O site tem um arquivo so: dist/xadrez-kindle.html vira o index.html do
+# site, entao o endereco fica curto (importante: digitar URL no teclado do
+# Kindle e sofrido) e a pagina carrega numa unica requisicao.
+#
+# Para ligar, uma vez so: Settings > Pages > Source: "GitHub Actions".
+name: Publicar no GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - claude/chess-game-kindle-anyz6l
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# uma publicacao por vez; nao cancela a que ja esta rodando
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Gerar o arquivo unico
+        run: python3 build.py
+
+      - name: Testar o motor antes de publicar
+        run: node testes/motor.js
+
+      - name: Montar o site
+        run: |
+          mkdir -p _site
+          cp dist/xadrez-kindle.html _site/index.html
+          cp dist/xadrez-kindle.html _site/xadrez-kindle.html
+          touch _site/.nojekyll
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4
